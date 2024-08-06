@@ -39,12 +39,12 @@ void JointPubNode::publishData()
   SetPosition msg;
   
   msg.position = currents_0_[current_position_index_];
-  msg.id = 1;    
+  msg.id = 15;    
 
   RCLCPP_INFO(get_logger(), "Publishing ID: %d Position: %d", msg.id, msg.position);
 
   publisher_->publish(msg);
-  current_position_index_ = (current_position_index_ + 1) % currents_0_.size();
+  //current_position_index_ = (current_position_index_ + 1) % currents_0_.size();
 }
 
 int main(int argc, char ** argv)

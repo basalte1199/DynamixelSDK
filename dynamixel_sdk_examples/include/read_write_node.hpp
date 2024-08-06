@@ -38,7 +38,7 @@ public:
 private:
   rclcpp::Subscription<SetPosition>::SharedPtr set_position_subscriber_;
   rclcpp::Service<GetPosition>::SharedPtr get_position_server_;
-
+  rclcpp::Publisher<SetPosition>::SharedPtr publisher_;
   int present_position;
 };
 

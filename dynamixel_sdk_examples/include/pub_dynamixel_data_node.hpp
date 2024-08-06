@@ -41,7 +41,7 @@ private:
                                   };
   std::vector<int> velocity_1_ = {200};  // Velocity
   std::vector<int> positions_3_ = {0, 1023, 2047, 3095, 4095, 3095 ,2047, 1023};   //Position
-  std::vector<int> current_5_ = {20};   //Current Limit 0-1193  https://emanual.robotis.com/docs/en/dxl/x/xm430-w350/#profile-acceleration108
+  std::vector<int> current_5_ = {80};   //Current Limit 0-1193  https://emanual.robotis.com/docs/en/dxl/x/xm430-w350/#profile-acceleration108
   std::vector<int> positions_5_ = {0, 0, 0, 0, 0, 0,\
                                   2047, 2047, 2047, 2047, 2047, 2047,\
                                   4095, 4095, 4095, 4095, 4095, 4095,\
