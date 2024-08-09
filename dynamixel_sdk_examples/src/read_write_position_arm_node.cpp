@@ -37,6 +37,7 @@
 #include "dynamixel_sdk/dynamixel_sdk.h"
 #include "dynamixel_sdk_custom_interfaces/msg/set_position.hpp"
 #include "dynamixel_sdk_custom_interfaces/srv/get_position.hpp"
+#include "dynamixel_sdk_custom_interfaces/msg/set_position_five_motor.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "rcutils/cmdline_parser.h"
 
@@ -110,14 +111,126 @@ ReadWriteNode::ReadWriteNode()
   const auto QOS_RKL10V =
     rclcpp::QoS(rclcpp::KeepLast(qos_depth)).reliable().durability_volatile();
 
-    // publish five motors position data
-    publisher_ = create_publisher<SetPositionFiveMotor>("/set_position_five_motor", 10);
-    timer_ = create_wall_timer(
-        std::chrono::milliseconds(1),
-        std::bind(&JointPubNode::publishData, this)
-    );
-    
+    set_position_subscriber_ =
+    this->create_subscription<SetPositionFiveMotor>(
+    "set_position_five_motor",
+    QOS_RKL10V,
+    [this](const SetPositionFiveMotor::SharedPtr msg) -> void
+    {
+      uint8_t dxl_error = 0;
 
+      // Position Value of X series is 4 byte data.
+      // For AX & MX(1.0) use 2 byte data(uint16_t) for the Position Value.
+      uint32_t goal_position_1 = (unsigned int)msg->position_1;  // Convert int32 -> uint32
+
+      // Write Goal Position (length : 4 bytes)
+      // When writing 2 byte data to AX / MX(1.0), use write2ByteTxRx() instead.
+      dxl_comm_result =
+      packetHandler->write4ByteTxRx(
+        portHandler,
+        (uint8_t) msg->id_1,
+        ADDR_GOAL_POSITION,
+        goal_position_1,
+        &dxl_error
+      );
+
+      if (dxl_comm_result != COMM_SUCCESS) {
+        RCLCPP_INFO(this->get_logger(), "%s", packetHandler->getTxRxResult(dxl_comm_result));
+      } else if (dxl_error != 0) {
+        RCLCPP_INFO(this->get_logger(), "%s", packetHandler->getRxPacketError(dxl_error));
+      } else {
+        RCLCPP_INFO(this->get_logger(), "Set [ID: %d] [Goal Position: %d]", msg->id_1, msg->position_1);
+      }
+
+      uint32_t goal_position_2 = (unsigned int)msg->position_2;
+
+      dxl_comm_result =
+      packetHandler->write4ByteTxRx(
+        portHandler,
+        (uint8_t) msg->id_2,
+        ADDR_GOAL_POSITION,
+        goal_position_2,
+        &dxl_error
+      );
+
+      if (dxl_comm_result != COMM_SUCCESS) {
+        RCLCPP_INFO(this->get_logger(), "%s", packetHandler->getTxRxResult(dxl_comm_result));
+      } else if (dxl_error != 0) {
+        RCLCPP_INFO(this->get_logger(), "%s", packetHandler->getRxPacketError(dxl_error));
+      } else {
+        RCLCPP_INFO(this->get_logger(), "Set [ID: %d] [Goal Position: %d]", msg->id_2, msg->position_2);
+      }
+
+      uint32_t goal_position_3 = (unsigned int)msg->position_3;
+
+      dxl_comm_result =
+      packetHandler->write4ByteTxRx(
+        portHandler,
+        (uint8_t) msg->id_3,
+        ADDR_GOAL_POSITION,
+        goal_position_3,
+        &dxl_error
+      );
+
+      if (dxl_comm_result != COMM_SUCCESS) {
+        RCLCPP_INFO(this->get_logger(), "%s", packetHandler->getTxRxResult(dxl_comm_result));
+      } else if (dxl_error != 0) {
+        RCLCPP_INFO(this->get_logger(), "%s", packetHandler->getRxPacketError(dxl_error));
+      } else {
+        RCLCPP_INFO(this->get_logger(), "Set [ID: %d] [Goal Position: %d]", msg->id_3, msg->position_3);
+      }
+
+      uint32_t goal_position_4 = (unsigned int)msg->position_4;
+
+      dxl_comm_result =
+      packetHandler->write4ByteTxRx(
+        portHandler,
+        (uint8_t) msg->id_4,
+        ADDR_GOAL_POSITION,
+        goal_position_4,
+        &dxl_error
+      );
+
+      if (dxl_comm_result != COMM_SUCCESS) {
+        RCLCPP_INFO(this->get_logger(), "%s", packetHandler->getTxRxResult(dxl_comm_result));
+      } else if (dxl_error != 0) {
+        RCLCPP_INFO(this->get_logger(), "%s", packetHandler->getRxPacketError(dxl_error));
+      } else {
+        RCLCPP_INFO(this->get_logger(), "Set [ID: %d] [Goal Position: %d]", msg->id_4, msg->position_4);
+      }
+
+      uint32_t goal_position_5 = (unsigned int)msg->position_5;
+      
+      dxl_comm_result =
+      packetHandler->write2ByteTxRx(
+        portHandler,
+        (uint8_t) msg->id_5,
+        ADDR_GOAL_CURRENT,
+        80,
+        &dxl_error
+      );
+
+
+      dxl_comm_result =
+      packetHandler->write4ByteTxRx(
+        portHandler,
+        (uint8_t) msg->id_5,
+        ADDR_GOAL_POSITION,
+        goal_position_5,
+        &dxl_error
+      );
+
+      if (dxl_comm_result != COMM_SUCCESS) {
+        RCLCPP_INFO(this->get_logger(), "%s", packetHandler->getTxRxResult(dxl_comm_result));
+      } else if (dxl_error != 0) {
+        RCLCPP_INFO(this->get_logger(), "%s", packetHandler->getRxPacketError(dxl_error));
+      } else {
+        RCLCPP_INFO(this->get_logger(), "Set [ID: %d] [Goal Position: %d]", msg->id_5, msg->position_5);
+      }
+    }
+    );
+
+  // create service to get the present position
   auto get_present_position =
     [this](
     const std::shared_ptr<GetPosition::Request> request,
@@ -239,7 +352,7 @@ void setupDynamixel()
     portHandler,
     DXL11_ID,
     ADDR_TORQUE_ENABLE,
-    TORQUE_DISABLE, 
+    TORQUE_ENABLE, 
     &dxl_error
   );
 
@@ -247,7 +360,7 @@ void setupDynamixel()
     portHandler,
     DXL12_ID,
     ADDR_TORQUE_ENABLE,
-    TORQUE_DISABLE, 
+    TORQUE_ENABLE, 
     &dxl_error
   );
 
@@ -255,7 +368,7 @@ void setupDynamixel()
     portHandler,
     DXL13_ID,
     ADDR_TORQUE_ENABLE,
-    TORQUE_DISABLE,  
+    TORQUE_ENABLE,  
     &dxl_error
   );
 
@@ -263,7 +376,15 @@ void setupDynamixel()
     portHandler,
     DXL14_ID,
     ADDR_TORQUE_ENABLE,
-    TORQUE_DISABLE,  
+    TORQUE_ENABLE,  
+    &dxl_error
+  );
+  // ID15 is current based position control mode
+  dxl_comm_result = packetHandler->write1ByteTxRx(
+    portHandler,
+    DXL15_ID,
+    ADDR_OPERATING_MODE,
+    CURRENT_BASED_POSITION_CONTROL,  
     &dxl_error
   );
 
@@ -271,7 +392,7 @@ void setupDynamixel()
     portHandler,
     DXL15_ID,
     ADDR_TORQUE_ENABLE,
-    TORQUE_DISABLE,  
+    TORQUE_ENABLE,  
     &dxl_error
   );
 
