@@ -37,7 +37,7 @@
 #include "dynamixel_sdk/dynamixel_sdk.h"
 #include "dynamixel_sdk_custom_interfaces/msg/set_position.hpp"
 #include "dynamixel_sdk_custom_interfaces/srv/get_position.hpp"
-#include "dynamixel_sdk_custom_interfaces/msg/set_position_five_motor.hpp"
+#include "dynamixel_sdk_custom_interfaces/msg/set_position_four_motor.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "rcutils/cmdline_parser.h"
 
@@ -112,8 +112,8 @@ ReadWriteNode::ReadWriteNode()
     rclcpp::QoS(rclcpp::KeepLast(qos_depth)).reliable().durability_volatile();
 
     set_position_subscriber_ =
-    this->create_subscription<SetPositionFiveMotor>(
-    "set_position_five_motor",
+    this->create_subscription<SetPositionFourMotor>(
+    "set_position_four_motor",
     QOS_RKL10V,
     [this](const SetPositionFiveMotor::SharedPtr msg) -> void
     {
@@ -197,35 +197,6 @@ ReadWriteNode::ReadWriteNode()
         RCLCPP_INFO(this->get_logger(), "%s", packetHandler->getRxPacketError(dxl_error));
       } else {
         RCLCPP_INFO(this->get_logger(), "Set [ID: %d] [Goal Position: %d]", msg->id_4, msg->position_4);
-      }
-
-      uint32_t goal_position_5 = (unsigned int)msg->position_5;
-      
-      dxl_comm_result =
-      packetHandler->write2ByteTxRx(
-        portHandler,
-        (uint8_t) msg->id_5,
-        ADDR_GOAL_CURRENT,
-        80,
-        &dxl_error
-      );
-
-
-      dxl_comm_result =
-      packetHandler->write4ByteTxRx(
-        portHandler,
-        (uint8_t) msg->id_5,
-        ADDR_GOAL_POSITION,
-        goal_position_5,
-        &dxl_error
-      );
-
-      if (dxl_comm_result != COMM_SUCCESS) {
-        RCLCPP_INFO(this->get_logger(), "%s", packetHandler->getTxRxResult(dxl_comm_result));
-      } else if (dxl_error != 0) {
-        RCLCPP_INFO(this->get_logger(), "%s", packetHandler->getRxPacketError(dxl_error));
-      } else {
-        RCLCPP_INFO(this->get_logger(), "Set [ID: %d] [Goal Position: %d]", msg->id_5, msg->position_5);
       }
     }
     );
