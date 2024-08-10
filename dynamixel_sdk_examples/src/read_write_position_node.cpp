@@ -115,51 +115,6 @@ ReadWriteNode::ReadWriteNode()
       // Position Value of X series is 4 byte data.
       // For AX & MX(1.0) use 2 byte data(uint16_t) for the Position Value.
       uint32_t goal_position = (unsigned int)msg->position;  // Convert int32 -> uint32
-      
-      if ((unit8_t) msg->id = 15) {
-        packetHandler->write2ByteTxRx(
-        portHandler,
-        (uint8_t) msg->id,
-        ADDR_GOAL_CURRENT,
-        80,
-        &dxl_error
-      );
-      }
-
-
-      // Write Goal Position (length : 4 bytes)
-      // When writing 2 byte data to AX / MX(1.0), use write2ByteTxRx() instead.
-      dxl_comm_result =
-      packetHandler->write4ByteTxRx(
-        portHandler,
-        (uint8_t) msg->id,
-        ADDR_GOAL_POSITION,
-        goal_position,
-        &dxl_error
-      );
-
-      if (dxl_comm_result != COMM_SUCCESS) {
-        RCLCPP_INFO(this->get_logger(), "%s", packetHandler->getTxRxResult(dxl_comm_result));
-      } else if (dxl_error != 0) {
-        RCLCPP_INFO(this->get_logger(), "%s", packetHandler->getRxPacketError(dxl_error));
-      } else {
-        RCLCPP_INFO(this->get_logger(), "Set [ID: %d] [Goal Position: %d]", msg->id, msg->position);
-      }
-    }
-    );
-
-
-  set_position_subscriber_ =
-    this->create_subscription<SetPosition>(
-    "set_position",
-    QOS_RKL10V,
-    [this](const SetPosition::SharedPtr msg) -> void
-    {
-      uint8_t dxl_error = 0;
-
-      // Position Value of X series is 4 byte data.
-      // For AX & MX(1.0) use 2 byte data(uint16_t) for the Position Value.
-      uint32_t goal_position = (unsigned int)msg->position;  // Convert int32 -> uint32
 
       // Write Goal Position (length : 4 bytes)
       // When writing 2 byte data to AX / MX(1.0), use write2ByteTxRx() instead.
@@ -187,6 +142,7 @@ ReadWriteNode::ReadWriteNode()
     const std::shared_ptr<GetPosition::Request> request,
     std::shared_ptr<GetPosition::Response> response) -> void
     {
+      uint8_t dxl_error = 0;
       // Read Present Position (length : 4 bytes) and Convert uint32 -> int32
       // When reading 2 byte data from AX / MX(1.0), use read2ByteTxRx() instead.
       dxl_comm_result = packetHandler->read4ByteTxRx(

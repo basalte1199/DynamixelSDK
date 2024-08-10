@@ -23,6 +23,9 @@
 #include "rcutils/cmdline_parser.h"
 #include "dynamixel_sdk/dynamixel_sdk.h"
 #include "dynamixel_sdk_custom_interfaces/msg/set_position.hpp"
+#include "dynamixel_sdk_custom_interfaces/msg/set_position_five_motor.hpp"
+#include "dynamixel_sdk_custom_interfaces/msg/set_position_four_motor.hpp"
+#include "dynamixel_sdk_custom_interfaces/msg/set_position_two_motor.hpp"
 #include "dynamixel_sdk_custom_interfaces/srv/get_position.hpp"
 
 
@@ -31,15 +34,29 @@ class ReadWriteNode : public rclcpp::Node
 public:
   using SetPosition = dynamixel_sdk_custom_interfaces::msg::SetPosition;
   using GetPosition = dynamixel_sdk_custom_interfaces::srv::GetPosition;
+  using SetPositionFiveMotor = dynamixel_sdk_custom_interfaces::msg::SetPositionFiveMotor;
+  using SetPositionFourMotor = dynamixel_sdk_custom_interfaces::msg::SetPositionFourMotor;
+  using SetPositionTwoMotor = dynamixel_sdk_custom_interfaces::msg::SetPositionTwoMotor;
 
   ReadWriteNode();
   virtual ~ReadWriteNode();
 
 private:
+  void publishData();
   rclcpp::Subscription<SetPosition>::SharedPtr set_position_subscriber_;
   rclcpp::Service<GetPosition>::SharedPtr get_position_server_;
   rclcpp::Publisher<SetPosition>::SharedPtr publisher_;
+  rclcpp::Publisher<SetPositionFiveMotor>::SharedPtr publisher_five_motor_;
+  rclcpp::Publisher<SetPositionFourMotor>::SharedPtr publisher_four_motor_;
+  rclcpp::Subscription<SetPositionFourMotor>::SharedPtr set_position_four_motor_subscriber_;
+  rclcpp::Publisher<SetPositionTwoMotor>::SharedPtr publisher_two_motor_;
+  rclcpp::TimerBase::SharedPtr timer_;
   int present_position;
+  int present_position_1;
+  int present_position_2;
+  int present_position_3;
+  int present_position_4;
+  int present_position_5;
 };
 
 #endif  // READ_WRITE_NODE_HPP_

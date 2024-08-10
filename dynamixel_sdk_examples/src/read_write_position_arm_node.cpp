@@ -111,11 +111,54 @@ ReadWriteNode::ReadWriteNode()
   const auto QOS_RKL10V =
     rclcpp::QoS(rclcpp::KeepLast(qos_depth)).reliable().durability_volatile();
 
-    set_position_subscriber_ =
+  set_position_subscriber_ =
+    this->create_subscription<SetPosition>(
+    "set_position",
+    QOS_RKL10V,
+    [this](const SetPosition::SharedPtr msg) -> void
+    {
+      uint8_t dxl_error = 0;
+
+      // Position Value of X series is 4 byte data.
+      // For AX & MX(1.0) use 2 byte data(uint16_t) for the Position Value.
+      uint32_t goal_position = (unsigned int)msg->position;  // Convert int32 -> uint32
+      
+      if ((uint8_t) msg->id == 15) {
+        packetHandler->write2ByteTxRx(
+        portHandler,
+        (uint8_t) msg->id,
+        ADDR_GOAL_CURRENT,
+        80,
+        &dxl_error
+      );
+      }
+
+      // Write Goal Position (length : 4 bytes)
+      // When writing 2 byte data to AX / MX(1.0), use write2ByteTxRx() instead.
+      dxl_comm_result =
+      packetHandler->write4ByteTxRx(
+        portHandler,
+        (uint8_t) msg->id,
+        ADDR_GOAL_POSITION,
+        goal_position,
+        &dxl_error
+      );
+
+      if (dxl_comm_result != COMM_SUCCESS) {
+        RCLCPP_INFO(this->get_logger(), "%s", packetHandler->getTxRxResult(dxl_comm_result));
+      } else if (dxl_error != 0) {
+        RCLCPP_INFO(this->get_logger(), "%s", packetHandler->getRxPacketError(dxl_error));
+      } else {
+        RCLCPP_INFO(this->get_logger(), "Set [ID: %d] [Goal Position: %d]", msg->id, msg->position);
+      }
+    }
+    );
+    
+  set_position_four_motor_subscriber_ =
     this->create_subscription<SetPositionFourMotor>(
     "set_position_four_motor",
     QOS_RKL10V,
-    [this](const SetPositionFiveMotor::SharedPtr msg) -> void
+    [this](const SetPositionFourMotor::SharedPtr msg) -> void
     {
       uint8_t dxl_error = 0;
 
@@ -238,75 +281,6 @@ ReadWriteNode::~ReadWriteNode()
 /******************************************************************************/
 /* Function                                                                   */
 /******************************************************************************/
-void ReadWriteNode::publishData()
-{
-    SetPosition msg;
-  
-    // position range: 0 - 4095 
-    msg.id_1 = 11;
-    dxl_comm_result = packetHandler->read4ByteTxRx(
-        portHandler,
-        msg.id_1,
-        ADDR_PRESENT_POSITION,
-        reinterpret_cast<uint32_t *>(&present_position_1),
-        &dxl_error
-      );
-    msg.position_1 = present_position_1;
-
-    RCLCPP_INFO(get_logger(), "Publishing ID: %d Position: %d", msg.id_1, msg.position_1);
-
-    msg.id_2 = 12;
-    dxl_comm_result = packetHandler->read4ByteTxRx(
-        portHandler,
-        msg.id_2,
-        ADDR_PRESENT_POSITION,
-        reinterpret_cast<uint32_t *>(&present_position_2),
-        &dxl_error
-      );
-    msg.position_2 = present_position_2;
-
-    RCLCPP_INFO(get_logger(), "Publishing ID: %d Position: %d", msg.id_2, msg.position_2);
-
-    msg.id_3 = 13;
-    dxl_comm_result = packetHandler->read4ByteTxRx(
-        portHandler,
-        msg.id_3,
-        ADDR_PRESENT_POSITION,
-        reinterpret_cast<uint32_t *>(&present_position_3),
-        &dxl_error
-      );
-    msg.position_3 = present_position_3;
-
-    RCLCPP_INFO(get_logger(), "Publishing ID: %d Position: %d", msg.id_3, msg.position_3);
-
-    msg.id_4 = 14;
-    dxl_comm_result = packetHandler->read4ByteTxRx(
-        portHandler,
-        msg.id_4,
-        ADDR_PRESENT_POSITION,
-        reinterpret_cast<uint32_t *>(&present_position_4),
-        &dxl_error
-      );
-    msg.position_4 = present_position_4;
-
-    RCLCPP_INFO(get_logger(), "Publishing ID: %d Position: %d", msg.id_4, msg.position_4);
-
-    msg.id_5 = 15;
-    dxl_comm_result = packetHandler->read4ByteTxRx(
-        portHandler,
-        msg.id_5,
-        ADDR_PRESENT_POSITION,
-        reinterpret_cast<uint32_t *>(&present_position_5),
-        &dxl_error
-      );
-    msg.position_5 = present_position_5;
-
-    RCLCPP_INFO(get_logger(), "Publishing ID: %d Position: %d", msg.id_5, msg.position_5);
-
-
-    publisher_->publish(msg);
-  
-}
 
 
 void setupDynamixel()

@@ -36,6 +36,7 @@
 
 #include "dynamixel_sdk/dynamixel_sdk.h"
 #include "dynamixel_sdk_custom_interfaces/msg/set_position.hpp"
+#include "dynamixel_sdk_custom_interfaces/msg/set_position_five_motor.hpp"
 #include "dynamixel_sdk_custom_interfaces/srv/get_position.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "rcutils/cmdline_parser.h"
@@ -111,10 +112,10 @@ ReadWriteNode::ReadWriteNode()
     rclcpp::QoS(rclcpp::KeepLast(qos_depth)).reliable().durability_volatile();
 
     // publish five motors position data
-    publisher_ = create_publisher<SetPositionFiveMotor>("/set_position_five_motor", 10);
+    publisher_five_motor_ = create_publisher<SetPositionFiveMotor>("/set_position_five_motor", 10);
     timer_ = create_wall_timer(
-        std::chrono::milliseconds(1),
-        std::bind(&JointPubNode::publishData, this)
+        std::chrono::milliseconds(10),
+        std::bind(&ReadWriteNode::publishData, this)
     );
     
 
@@ -156,7 +157,7 @@ ReadWriteNode::~ReadWriteNode()
 /******************************************************************************/
 void ReadWriteNode::publishData()
 {
-    SetPosition msg;
+    SetPositionFiveMotor msg;
   
     // position range: 0 - 4095 
     msg.id_1 = 11;
@@ -220,7 +221,7 @@ void ReadWriteNode::publishData()
     RCLCPP_INFO(get_logger(), "Publishing ID: %d Position: %d", msg.id_5, msg.position_5);
 
 
-    publisher_->publish(msg);
+    publisher_five_motor_->publish(msg);
   
 }
 

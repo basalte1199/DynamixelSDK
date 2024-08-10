@@ -15,9 +15,22 @@ find_package(ament_cmake REQUIRED)
 find_package(builtin_interfaces REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
 
+set(msg_files_five_motor
+  "msg/SetPositionFiveMotor.msg"
+)
+
+set(msg_files_four_motor
+  "msg/SetPositionFourMotor.msg"
+)
+
+set(msg_files_two_motor
+  "msg/SetPositionTwoMotor.msg"
+)
+
 set(msg_files
   "msg/SetPosition.msg"
 )
+
 
 set(srv_files
   "srv/GetPosition.srv"
@@ -26,6 +39,9 @@ set(srv_files
 rosidl_generate_interfaces(${PROJECT_NAME}
   ${msg_files}
   ${srv_files}
+  ${msg_files_two_motor}
+  ${msg_files_four_motor}
+  ${msg_files_five_motor}
   DEPENDENCIES builtin_interfaces
 )
 
