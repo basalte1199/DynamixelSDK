@@ -111,7 +111,7 @@ ReadWriteNode::ReadWriteNode()
   const auto QOS_RKL10V =
     rclcpp::QoS(rclcpp::KeepLast(qos_depth)).reliable().durability_volatile();
 
-    publisher_five_motor_ = create_publisher<SetPositionFiveMotor>("/get_present_position_five_motor", 10);
+    publisher_five_motor_present_position_ = create_publisher<SetPositionFiveMotor>("/get_present_position_five_motor", 10);
     timer_ = create_wall_timer(
         std::chrono::milliseconds(10),
         std::bind(&ReadWriteNode::publishData, this)
@@ -298,11 +298,11 @@ ReadWriteNode::~ReadWriteNode()
 /******************************************************************************/
 void ReadWriteNode::publishData()
 {
-    SetositionFiveMotor msg;
-    int msg.id_1, msg.id_2, msg.id_3, msg.id_4, msg.id_5, i;
-    int* id[] = { &msg.id_1, &msg.id_2, &msg.id_3 ,&msg.id_4, &msg.id_5 };
+    SetPositionFiveMotor msg;
+    //int msg.id_1, msg.id_2, msg.id_3, msg.id_4, msg.id_5, i;
+    unsigned char* id[] = { &msg.id_1, &msg.id_2, &msg.id_3 ,&msg.id_4, &msg.id_5 };
 
-    int msg.position_1, msg.position_2, msg.position_3, msg.position_4, msg.position_5;
+    //int msg.position_1, msg.position_2, msg.position_3, msg.position_4, msg.position_5;
     int* position[] = { &msg.position_1, &msg.position_2, &msg.position_3, &msg.position_4, &msg.position_5 };
 
     int present_position_1, present_position_2, present_position_3, present_position_4, present_position_5;
@@ -326,11 +326,11 @@ void ReadWriteNode::publishData()
 
 void ReadWriteNode::publishCurrentData()
 {
-    SetositionFiveMotor msg;
-    int msg.id_1, msg.id_2, msg.id_3, msg.id_4, msg.id_5, i;
-    int* id[] = { &msg.id_1, &msg.id_2, &msg.id_3 ,&msg.id_4, &msg.id_5 };
+    SetPositionFiveMotor msg;
+    //int msg.id_1, msg.id_2, msg.id_3, msg.id_4, msg.id_5, i;
+    unsigned char* id[] = { &msg.id_1, &msg.id_2, &msg.id_3 ,&msg.id_4, &msg.id_5 };
 
-    int msg.position_1, msg.position_2, msg.position_3, msg.position_4, msg.position_5;
+    //int msg.position_1, msg.position_2, msg.position_3, msg.position_4, msg.position_5;
     int* position[] = { &msg.position_1, &msg.position_2, &msg.position_3, &msg.position_4, &msg.position_5 };
 
     int present_position_1, present_position_2, present_position_3, present_position_4, present_position_5;

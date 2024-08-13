@@ -43,11 +43,14 @@ public:
 
 private:
   void publishData();
+  void publishCurrentData();
   rclcpp::Subscription<SetPosition>::SharedPtr set_position_subscriber_;
   rclcpp::Service<GetPosition>::SharedPtr get_position_server_;
   rclcpp::Publisher<SetPosition>::SharedPtr publisher_;
   rclcpp::Publisher<SetPositionFiveMotor>::SharedPtr publisher_five_motor_;
   rclcpp::Publisher<SetPositionFourMotor>::SharedPtr publisher_four_motor_;
+  rclcpp::Publisher<SetPositionFiveMotor>::SharedPtr publisher_five_motor_present_position_;
+  rclcpp::Publisher<SetPositionFiveMotor>::SharedPtr publisher_five_motor_present_current_;
   rclcpp::Subscription<SetPositionFourMotor>::SharedPtr set_position_four_motor_subscriber_;
   rclcpp::Publisher<SetPositionTwoMotor>::SharedPtr publisher_two_motor_;
   rclcpp::TimerBase::SharedPtr timer_;
