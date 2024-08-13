@@ -376,7 +376,7 @@ void setupDynamixel()
     portHandler,
     DXL25_ID,
     ADDR_TORQUE_ENABLE,
-    TORQUE_ENABLE,  /* Torque ON */
+    TORQUE_ENABLE, 
     &dxl_error
   );
 
