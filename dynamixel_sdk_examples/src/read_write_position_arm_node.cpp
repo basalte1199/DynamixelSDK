@@ -111,6 +111,20 @@ ReadWriteNode::ReadWriteNode()
   const auto QOS_RKL10V =
     rclcpp::QoS(rclcpp::KeepLast(qos_depth)).reliable().durability_volatile();
 
+    publisher_five_motor_ = create_publisher<SetPositionFiveMotor>("/get_present_position_five_motor", 10);
+    timer_ = create_wall_timer(
+        std::chrono::milliseconds(10),
+        std::bind(&ReadWriteNode::publishData, this)
+    );
+    
+    //hppでpublisherを定義、publishCurrentDataも定義
+    publisher_five_motor_present_current_ = create_publisher<SetPositionFiveMotor>("/get_present_current_five_motor", 10);
+    timer_ = create_wall_timer(
+        std::chrono::milliseconds(10),
+        std::bind(&ReadWriteNode::publishCurrentData, this)
+    );
+
+
   set_position_subscriber_ =
     this->create_subscription<SetPosition>(
     "set_position",
@@ -244,6 +258,7 @@ ReadWriteNode::ReadWriteNode()
     }
     );
 
+
   // create service to get the present position
   auto get_present_position =
     [this](
@@ -281,6 +296,61 @@ ReadWriteNode::~ReadWriteNode()
 /******************************************************************************/
 /* Function                                                                   */
 /******************************************************************************/
+void ReadWriteNode::publishData()
+{
+    SetositionFiveMotor msg;
+    int msg.id_1, msg.id_2, msg.id_3, msg.id_4, msg.id_5, i;
+    int* id[] = { &msg.id_1, &msg.id_2, &msg.id_3 ,&msg.id_4, &msg.id_5 };
+
+    int msg.position_1, msg.position_2, msg.position_3, msg.position_4, msg.position_5;
+    int* position[] = { &msg.position_1, &msg.position_2, &msg.position_3, &msg.position_4, &msg.position_5 };
+
+    int present_position_1, present_position_2, present_position_3, present_position_4, present_position_5;
+    int* present_position[] = { &present_position_1, &present_position_2, &present_position_3, &present_position_4, &present_position_5 };
+
+    for (int i = 11; i <= 15; i++){
+        //msg.id_1 = 11;
+        *id[i-11] = i;
+        dxl_comm_result = packetHandler->read4ByteTxRx(
+            portHandler,
+            *id[i-11],
+            ADDR_PRESENT_POSITION,
+            reinterpret_cast<uint32_t *>(&*present_position[i-11]),
+            &dxl_error
+        );
+        *position[i-11] = *present_position[i-11];
+
+        RCLCPP_INFO(get_logger(), "Publishing ID: %d Position: %d", *id[i-11], *position[i-11]);
+    }
+}
+
+void ReadWriteNode::publishCurrentData()
+{
+    SetositionFiveMotor msg;
+    int msg.id_1, msg.id_2, msg.id_3, msg.id_4, msg.id_5, i;
+    int* id[] = { &msg.id_1, &msg.id_2, &msg.id_3 ,&msg.id_4, &msg.id_5 };
+
+    int msg.position_1, msg.position_2, msg.position_3, msg.position_4, msg.position_5;
+    int* position[] = { &msg.position_1, &msg.position_2, &msg.position_3, &msg.position_4, &msg.position_5 };
+
+    int present_position_1, present_position_2, present_position_3, present_position_4, present_position_5;
+    int* present_position[] = { &present_position_1, &present_position_2, &present_position_3, &present_position_4, &present_position_5 };
+
+    for (int i = 11; i <= 15; i++){
+        //msg.id_1 = 11;
+        *id[i-11] = i;
+        dxl_comm_result = packetHandler->read4ByteTxRx(
+            portHandler,
+            *id[i-11],
+            ADDR_PRESENT_CURRENT,
+            reinterpret_cast<uint32_t *>(&*present_position[i-11]),
+            &dxl_error
+        );
+        *position[i-11] = *present_position[i-11];
+
+        RCLCPP_INFO(get_logger(), "Publishing ID: %d Current: %d", *id[i-11], *position[i-11]);
+    }
+}
 
 
 void setupDynamixel()
