@@ -112,12 +112,12 @@ ReadWriteNode::ReadWriteNode()
     rclcpp::QoS(rclcpp::KeepLast(qos_depth)).reliable().durability_volatile();
 
     publisher_five_motor_present_position_ = create_publisher<SetPositionFiveMotor>("/get_present_position_five_motor", 10);
-    timer_ = create_wall_timer(
+    timer_position_ = create_wall_timer(
         std::chrono::milliseconds(10),
         std::bind(&ReadWriteNode::publishData, this)
     );
     
-    //hppでpublisherを定義、publishCurrentDataも定義
+    
     publisher_five_motor_present_current_ = create_publisher<SetPositionFiveMotor>("/get_present_current_five_motor", 10);
     timer_ = create_wall_timer(
         std::chrono::milliseconds(10),
@@ -142,7 +142,7 @@ ReadWriteNode::ReadWriteNode()
         portHandler,
         (uint8_t) msg->id,
         ADDR_GOAL_CURRENT,
-        80,
+        200,
         &dxl_error
       );
       }
@@ -298,30 +298,29 @@ ReadWriteNode::~ReadWriteNode()
 /******************************************************************************/
 void ReadWriteNode::publishData()
 {
-    SetPositionFiveMotor msg;
+    SetPositionFiveMotor message;
     //int msg.id_1, msg.id_2, msg.id_3, msg.id_4, msg.id_5, i;
-    unsigned char* id[] = { &msg.id_1, &msg.id_2, &msg.id_3 ,&msg.id_4, &msg.id_5 };
+    unsigned char* id[] = { &message.id_1, &message.id_2, &message.id_3 ,&message.id_4, &message.id_5 };
 
     //int msg.position_1, msg.position_2, msg.position_3, msg.position_4, msg.position_5;
-    int* position[] = { &msg.position_1, &msg.position_2, &msg.position_3, &msg.position_4, &msg.position_5 };
+    int* position[] = { &message.position_1, &message.position_2, &message.position_3, &message.position_4, &message.position_5 };
 
-    int present_position_1, present_position_2, present_position_3, present_position_4, present_position_5;
-    int* present_position[] = { &present_position_1, &present_position_2, &present_position_3, &present_position_4, &present_position_5 };
+    uint32_t present; 
 
     for (int i = 11; i <= 15; i++){
-        //msg.id_1 = 11;
-        *id[i-11] = i;
+        *id[i-11] = static_cast<unsigned char>(i);
         dxl_comm_result = packetHandler->read4ByteTxRx(
             portHandler,
             *id[i-11],
             ADDR_PRESENT_POSITION,
-            reinterpret_cast<uint32_t *>(&*present_position[i-11]),
+            &present,
             &dxl_error
         );
-        *position[i-11] = *present_position[i-11];
+        *position[i-11] = static_cast<int>(present);
 
         RCLCPP_INFO(get_logger(), "Publishing ID: %d Position: %d", *id[i-11], *position[i-11]);
     }
+    publisher_five_motor_present_position_ ->publish(message);
 }
 
 void ReadWriteNode::publishCurrentData()
@@ -333,23 +332,22 @@ void ReadWriteNode::publishCurrentData()
     //int msg.position_1, msg.position_2, msg.position_3, msg.position_4, msg.position_5;
     int* position[] = { &msg.position_1, &msg.position_2, &msg.position_3, &msg.position_4, &msg.position_5 };
 
-    int present_position_1, present_position_2, present_position_3, present_position_4, present_position_5;
-    int* present_position[] = { &present_position_1, &present_position_2, &present_position_3, &present_position_4, &present_position_5 };
+    int present_current; 
 
     for (int i = 11; i <= 15; i++){
-        //msg.id_1 = 11;
-        *id[i-11] = i;
+        *id[i-11] = static_cast<unsigned char>(i);
         dxl_comm_result = packetHandler->read4ByteTxRx(
             portHandler,
             *id[i-11],
             ADDR_PRESENT_CURRENT,
-            reinterpret_cast<uint32_t *>(&*present_position[i-11]),
+            reinterpret_cast<uint32_t *>(&present_current),
             &dxl_error
         );
-        *position[i-11] = *present_position[i-11];
+        *position[i-11] = present_current;
 
         RCLCPP_INFO(get_logger(), "Publishing ID: %d Current: %d", *id[i-11], *position[i-11]);
     }
+    publisher_five_motor_present_current_->publish(msg);
 }
 
 

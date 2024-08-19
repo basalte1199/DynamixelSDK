@@ -54,6 +54,7 @@ private:
   rclcpp::Subscription<SetPositionFourMotor>::SharedPtr set_position_four_motor_subscriber_;
   rclcpp::Publisher<SetPositionTwoMotor>::SharedPtr publisher_two_motor_;
   rclcpp::TimerBase::SharedPtr timer_;
+  rclcpp::TimerBase::SharedPtr timer_position_;
   int present_position;
   int present_position_1;
   int present_position_2;
