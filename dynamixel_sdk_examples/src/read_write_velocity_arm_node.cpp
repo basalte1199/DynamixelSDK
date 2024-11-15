@@ -80,12 +80,6 @@
 #define VELOCITY_CONTROL				       1
 #define TORQUE_CONTROL					       0
 
-
-#define ADDR_DRIVE_MODE           10
-#define TIME_BASED_PROFILE        4
-
-#define PROFILE_VELOCITY          112
-
 /* Protocol version */ 
 #define PROTOCOL_VERSION 2.0  // Default Protocol version of DYNAMIXEL X series.
 
@@ -192,7 +186,7 @@ ReadWriteNode::ReadWriteNode()
       packetHandler->write4ByteTxRx(
         portHandler,
         (uint8_t) msg->id_1,
-        ADDR_GOAL_POSITION,
+        ADDR_GOAL_VELOCITY,
         goal_position_1,
         &dxl_error
       );
@@ -211,7 +205,7 @@ ReadWriteNode::ReadWriteNode()
       packetHandler->write4ByteTxRx(
         portHandler,
         (uint8_t) msg->id_2,
-        ADDR_GOAL_POSITION,
+        ADDR_GOAL_VELOCITY,
         goal_position_2,
         &dxl_error
       );
@@ -230,7 +224,7 @@ ReadWriteNode::ReadWriteNode()
       packetHandler->write4ByteTxRx(
         portHandler,
         (uint8_t) msg->id_3,
-        ADDR_GOAL_POSITION,
+        ADDR_GOAL_VELOCITY,
         goal_position_3,
         &dxl_error
       );
@@ -249,7 +243,7 @@ ReadWriteNode::ReadWriteNode()
       packetHandler->write4ByteTxRx(
         portHandler,
         (uint8_t) msg->id_4,
-        ADDR_GOAL_POSITION,
+        ADDR_GOAL_VELOCITY,
         goal_position_4,
         &dxl_error
       );
@@ -357,155 +351,63 @@ void ReadWriteNode::publishCurrentData()
 }
 
 
-void setupDynamixel(uint8_t dxl_id)
+void setupDynamixel()
 {
   /* Use Position Control Mode                */
   /* #define CURRENT_BASED_POSITION_CONTROL 5 */
   /* #define POSITION_CONTROL				        3 */
   /* #define VELOCITY_CONTROL				        1 */
   /* #define TORQUE_CONTROL					        0 */
-  uint32_t arm_profile = 500;
-  uint32_t gripper_profile = 300;
-  
+
+
+  // Enable Torque of DYNAMIXEL
   dxl_comm_result = packetHandler->write1ByteTxRx(
-        portHandler,
-        dxl_id,
-        ADDR_DRIVE_MODE,
-        TIME_BASED_PROFILE,  
-        &dxl_error
+    portHandler,
+    DXL11_ID,
+    ADDR_TORQUE_ENABLE,
+    TORQUE_ENABLE, 
+    &dxl_error
   );
-  
-  dxl_comm_result = packetHandler->write4ByteTxRx(
-        portHandler,
-        DXL11_ID,
-        PROFILE_VELOCITY,
-        arm_profile,
-        &dxl_error
-  );
-  dxl_comm_result = packetHandler->write4ByteTxRx(
-        portHandler,
-        DXL12_ID,
-        PROFILE_VELOCITY,
-        arm_profile,
-        &dxl_error
-  );
-  dxl_comm_result = packetHandler->write4ByteTxRx(
-        portHandler,
-        DXL13_ID,
-        PROFILE_VELOCITY,
-        arm_profile,
-        &dxl_error
-  );
-  dxl_comm_result = packetHandler->write4ByteTxRx(
-        portHandler,
-        DXL14_ID,
-        PROFILE_VELOCITY,
-        gripper_profile,
-        &dxl_error
-  );
-  dxl_comm_result = packetHandler->write4ByteTxRx(
-        portHandler,
-        DXL15_ID,
-        PROFILE_VELOCITY,
-        gripper_profile,
-        &dxl_error
-  );
-  
-  if (dxl_comm_result != COMM_SUCCESS) {
-    RCLCPP_ERROR(rclcpp::get_logger("read_write_node"), "Failed to enable drive mode.");
-  } else {
-    RCLCPP_INFO(rclcpp::get_logger("read_write_node"), "Succeeded to enable drive mode.");
-  }
-  
 
   dxl_comm_result = packetHandler->write1ByteTxRx(
     portHandler,
-    dxl_id,
+    DXL12_ID,
     ADDR_TORQUE_ENABLE,
-    TORQUE_ENABLE,  /* Torque ON */
+    TORQUE_ENABLE, 
     &dxl_error
   );
-  if (dxl_comm_result != COMM_SUCCESS) {
-    RCLCPP_ERROR(rclcpp::get_logger("read_write_node"), "Failed to enable torque.");
-  } else {
-    RCLCPP_INFO(rclcpp::get_logger("read_write_node"), "Succeeded to enable torque.");
-  }
 
-    //unsigned char* id[] = { &DXL11_ID, &DXL12_ID, &DXL13_ID ,&DXL14_ID, &DXL15_ID };
-    uint32_t target_current = 200;
+  dxl_comm_result = packetHandler->write1ByteTxRx(
+    portHandler,
+    DXL13_ID,
+    ADDR_TORQUE_ENABLE,
+    TORQUE_ENABLE,  
+    &dxl_error
+  );
 
-    uint32_t torque_enable = TORQUE_ENABLE;
-    /*
-    for (int i = 11; i <= 15; i++){
-      
-        dxl_comm_result = packetHandler->read4ByteTxRx(
-            portHandler,
-            i,
-            ADDR_TORQUE_ENABLE,
-            &torque_enable,
-            &dxl_error
-        );
-        
-        auto logger = rclcpp::get_logger("logger_name");
-        RCLCPP_INFO(logger, "Torque enable: %d", i);
-        if (i == 15){
-            dxl_comm_result = packetHandler->write1ByteTxRx(
-                portHandler,
-                i,
-                ADDR_OPERATING_MODE,
-                CURRENT_BASED_POSITION_CONTROL,  
-                &dxl_error
-            );
-            packetHandler->write2ByteTxRx(
-              portHandler,
-              i,
-              ADDR_GOAL_CURRENT,
-              target_current,
-              &dxl_error
-            );
-            RCLCPP_INFO(logger, "Torque enable: %d", i);
-            dxl_comm_result = packetHandler->write1ByteTxRx(
-            portHandler,
-            i,
-            ADDR_DRIVE_MODE,
-            TIME_BASED_PROFILE,  
-            &dxl_error
-            );
-            dxl_comm_result = packetHandler->write1ByteTxRx(
-            portHandler,
-            i,
-            PROFILE_VELOCITY,
-            gripper_profile,  
-            &dxl_error
-            );
-        }
-        dxl_comm_result = packetHandler->write1ByteTxRx(
-        portHandler,
-        i,
-        ADDR_OPERATING_MODE,
-        POSITION_CONTROL,  
-        &dxl_error
-        );
-        RCLCPP_INFO(logger, "Torque enable: %d", i);
-        dxl_comm_result = packetHandler->write1ByteTxRx(
-        portHandler,
-        i,
-        ADDR_DRIVE_MODE,
-        TIME_BASED_PROFILE,  
-        &dxl_error
-        );
-        dxl_comm_result = packetHandler->write1ByteTxRx(
-        portHandler,
-        i,
-        PROFILE_VELOCITY,
-        arm_profile,  
-        &dxl_error
-        );
-      
+  dxl_comm_result = packetHandler->write1ByteTxRx(
+    portHandler,
+    DXL14_ID,
+    ADDR_TORQUE_ENABLE,
+    TORQUE_ENABLE,  
+    &dxl_error
+  );
+  // ID15 is current based position control mode
+  dxl_comm_result = packetHandler->write1ByteTxRx(
+    portHandler,
+    DXL15_ID,
+    ADDR_OPERATING_MODE,
+    CURRENT_BASED_POSITION_CONTROL,  
+    &dxl_error
+  );
 
-    }
-  */
-
+  dxl_comm_result = packetHandler->write1ByteTxRx(
+    portHandler,
+    DXL15_ID,
+    ADDR_TORQUE_ENABLE,
+    TORQUE_ENABLE,  
+    &dxl_error
+  );
 
   if (dxl_comm_result != COMM_SUCCESS) {
     RCLCPP_ERROR(rclcpp::get_logger("read_write_node"), "Failed to set Position Control Mode.");
@@ -544,7 +446,7 @@ int main(int argc, char * argv[])
     RCLCPP_INFO(rclcpp::get_logger("read_write_node"), "Succeeded to set the baudrate.");
   }
   
-  setupDynamixel(BROADCAST_ID);
+  setupDynamixel();
   
   rclcpp::init(argc, argv);
 

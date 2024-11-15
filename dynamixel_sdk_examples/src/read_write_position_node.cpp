@@ -72,6 +72,11 @@
 #define VELOCITY_CONTROL				       1
 #define TORQUE_CONTROL					       0
 
+#define ADDR_DRIVE_MODE           10
+#define TIME_BASED_PROFILE        1
+
+#define PROFILE_VELOCITY          112
+
 /* Protocol version */ 
 #define PROTOCOL_VERSION 2.0  // Default Protocol version of DYNAMIXEL X series.
 
@@ -192,6 +197,33 @@ void setupDynamixel(uint8_t dxl_id)
     RCLCPP_ERROR(rclcpp::get_logger("read_write_node"), "Failed to set Position Control Mode.");
   } else {
     RCLCPP_INFO(rclcpp::get_logger("read_write_node"), "Succeeded to set Position Control Mode.");
+  }
+
+  dxl_comm_result = packetHandler->write1ByteTxRx(
+        portHandler,
+        dxl_id,
+        ADDR_DRIVE_MODE,
+        TIME_BASED_PROFILE,  
+        &dxl_error
+  );
+  if (dxl_comm_result != COMM_SUCCESS) {
+    RCLCPP_ERROR(rclcpp::get_logger("read_write_node"), "Failed to enable drive mode.");
+  } else {
+    RCLCPP_INFO(rclcpp::get_logger("read_write_node"), "Succeeded to enable drive mode.");
+  }
+  uint32_t arm_profile = 2000;
+  dxl_comm_result = packetHandler->write1ByteTxRx(
+        portHandler,
+        dxl_id,
+        PROFILE_VELOCITY,
+        arm_profile,  
+        &dxl_error
+    );
+
+  if (dxl_comm_result != COMM_SUCCESS) {
+    RCLCPP_ERROR(rclcpp::get_logger("read_write_node"), "Failed to enable profile velocity.");
+  } else {
+    RCLCPP_INFO(rclcpp::get_logger("read_write_node"), "Succeeded to enable profile velocity.");
   }
 
   // Enable Torque of DYNAMIXEL
