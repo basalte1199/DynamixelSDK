@@ -36,7 +36,7 @@
 
 #include "dynamixel_sdk/dynamixel_sdk.h"
 #include "dynamixel_sdk_custom_interfaces/msg/set_position.hpp"
-#include "dynamixel_sdk_custom_interfaces/msg/set_position_five_motor.hpp"
+#include "dynamixel_sdk_custom_interfaces/msg/set_position_six_motor.hpp"
 #include "dynamixel_sdk_custom_interfaces/srv/get_position.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "rcutils/cmdline_parser.h"
@@ -68,6 +68,7 @@
 #define DXL13_ID 13
 #define DXL14_ID 14
 #define DXL15_ID 15
+#define DXL16_ID 16
 
 
 /* TORQUE ENABLE/DISABLE */
@@ -85,7 +86,7 @@
 
 /* Default setting */
 #define BAUDRATE 57600  // Default Baudrate of DYNAMIXEL X series
-#define DEVICE_NAME "/dev/ttyACM0"  // [Linux]: "/dev/ttyUSB*", [Windows]: "COM*"
+#define DEVICE_NAME "/dev/ttyUSB0"  // [Linux]: "/dev/ttyUSB*", [Windows]: "COM*"
 
 dynamixel::PortHandler * portHandler;
 dynamixel::PacketHandler * packetHandler;
@@ -112,7 +113,7 @@ ReadWriteNode::ReadWriteNode()
     rclcpp::QoS(rclcpp::KeepLast(qos_depth)).reliable().durability_volatile();
 
     // publish five motors position data
-    publisher_five_motor_ = create_publisher<SetPositionFiveMotor>("/set_position_five_motor", 10);
+    publisher_six_motor_ = create_publisher<SetPositionSixMotor>("/get_position_six_motor", 10);
     timer_ = create_wall_timer(
         std::chrono::milliseconds(10),
         std::bind(&ReadWriteNode::publishData, this)
@@ -157,7 +158,7 @@ ReadWriteNode::~ReadWriteNode()
 /******************************************************************************/
 void ReadWriteNode::publishData()
 {
-    SetPositionFiveMotor msg;
+    SetPositionSixMotor msg;
   
     // position range: 0 - 4095 
     msg.id_1 = 11;
@@ -220,8 +221,20 @@ void ReadWriteNode::publishData()
 
     RCLCPP_INFO(get_logger(), "Publishing ID: %d Position: %d", msg.id_5, msg.position_5);
 
+    msg.id_6 = 16;
+    dxl_comm_result = packetHandler->read4ByteTxRx(
+        portHandler,
+        msg.id_6,
+        ADDR_PRESENT_POSITION,
+        reinterpret_cast<uint32_t *>(&present_position_6),
+        &dxl_error
+      );
+    msg.position_6 = present_position_6;
 
-    publisher_five_motor_->publish(msg);
+    RCLCPP_INFO(get_logger(), "Publishing ID: %d Position: %d", msg.id_6, msg.position_6);
+
+
+    publisher_six_motor_->publish(msg);
   
 }
 
@@ -271,6 +284,14 @@ void setupDynamixel()
   dxl_comm_result = packetHandler->write1ByteTxRx(
     portHandler,
     DXL15_ID,
+    ADDR_TORQUE_ENABLE,
+    TORQUE_DISABLE,  
+    &dxl_error
+  );
+
+  dxl_comm_result = packetHandler->write1ByteTxRx(
+    portHandler,
+    DXL16_ID,
     ADDR_TORQUE_ENABLE,
     TORQUE_DISABLE,  
     &dxl_error
