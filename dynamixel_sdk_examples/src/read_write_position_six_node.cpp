@@ -38,6 +38,7 @@
 #include "dynamixel_sdk_custom_interfaces/msg/set_position.hpp"
 #include "dynamixel_sdk_custom_interfaces/srv/get_position.hpp"
 #include "dynamixel_sdk_custom_interfaces/msg/set_position_four_motor.hpp"
+#include "dynamixel_sdk_custom_interfaces/msg/set_position_six_motor.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "rcutils/cmdline_parser.h"
 
@@ -68,6 +69,7 @@
 #define DXL13_ID 13
 #define DXL14_ID 14
 #define DXL15_ID 15
+#define DXL16_ID 16
 
 
 /* TORQUE ENABLE/DISABLE */
@@ -106,7 +108,7 @@ int dxl_comm_result = COMM_TX_FAIL;
 
 
 ReadWriteNode::ReadWriteNode()
-: Node("read_write_node")
+: Node("read_write_six_node")
 {
   RCLCPP_INFO(this->get_logger(), "Run read write node");
 
@@ -116,69 +118,12 @@ ReadWriteNode::ReadWriteNode()
 
   const auto QOS_RKL10V =
     rclcpp::QoS(rclcpp::KeepLast(qos_depth)).reliable().durability_volatile();
-
-    publisher_five_motor_present_position_ = create_publisher<SetPositionFiveMotor>("/get_present_position_five_motor", 10);
-    timer_position_ = create_wall_timer(
-        std::chrono::milliseconds(10),
-        std::bind(&ReadWriteNode::publishData, this)
-    );
     
-    
-    publisher_five_motor_present_current_ = create_publisher<SetPositionFiveMotor>("/get_present_current_five_motor", 10);
-    timer_ = create_wall_timer(
-        std::chrono::milliseconds(10),
-        std::bind(&ReadWriteNode::publishCurrentData, this)
-    );
-
-
-  set_position_subscriber_ =
-    this->create_subscription<SetPosition>(
-    "set_position",
+  set_position_six_motor_subscriber_ =
+    this->create_subscription<SetPositionSixMotor>(
+    "six_motor_presentposition",
     QOS_RKL10V,
-    [this](const SetPosition::SharedPtr msg) -> void
-    {
-      uint8_t dxl_error = 0;
-
-      // Position Value of X series is 4 byte data.
-      // For AX & MX(1.0) use 2 byte data(uint16_t) for the Position Value.
-      uint32_t goal_position = (unsigned int)msg->position;  // Convert int32 -> uint32
-      
-      if ((uint8_t) msg->id == 15 or (uint8_t) msg->id == 16){
-        packetHandler->write2ByteTxRx(
-        portHandler,
-        (uint8_t) msg->id,
-        ADDR_GOAL_CURRENT,
-        200,
-        &dxl_error
-      );
-      }
-
-      // Write Goal Position (length : 4 bytes)
-      // When writing 2 byte data to AX / MX(1.0), use write2ByteTxRx() instead.
-      dxl_comm_result =
-      packetHandler->write4ByteTxRx(
-        portHandler,
-        (uint8_t) msg->id,
-        ADDR_GOAL_POSITION,
-        goal_position,
-        &dxl_error
-      );
-
-      if (dxl_comm_result != COMM_SUCCESS) {
-        RCLCPP_INFO(this->get_logger(), "%s", packetHandler->getTxRxResult(dxl_comm_result));
-      } else if (dxl_error != 0) {
-        RCLCPP_INFO(this->get_logger(), "%s", packetHandler->getRxPacketError(dxl_error));
-      } else {
-        RCLCPP_INFO(this->get_logger(), "Set [ID: %d] [Goal Position: %d]", msg->id, msg->position);
-      }
-    }
-    );
-    
-  set_position_four_motor_subscriber_ =
-    this->create_subscription<SetPositionFourMotor>(
-    "set_position_four_motor",
-    QOS_RKL10V,
-    [this](const SetPositionFourMotor::SharedPtr msg) -> void
+    [this](const SetPositionSixMotor::SharedPtr msg) -> void
     {
       uint8_t dxl_error = 0;
 
@@ -197,14 +142,6 @@ ReadWriteNode::ReadWriteNode()
         &dxl_error
       );
 
-      if (dxl_comm_result != COMM_SUCCESS) {
-        RCLCPP_INFO(this->get_logger(), "%s", packetHandler->getTxRxResult(dxl_comm_result));
-      } else if (dxl_error != 0) {
-        RCLCPP_INFO(this->get_logger(), "%s", packetHandler->getRxPacketError(dxl_error));
-      } else {
-        RCLCPP_INFO(this->get_logger(), "Set [ID: %d] [Goal Position: %d]", msg->id_1, msg->position_1);
-      }
-
       uint32_t goal_position_2 = (unsigned int)msg->position_2;
 
       dxl_comm_result =
@@ -215,14 +152,6 @@ ReadWriteNode::ReadWriteNode()
         goal_position_2,
         &dxl_error
       );
-
-      if (dxl_comm_result != COMM_SUCCESS) {
-        RCLCPP_INFO(this->get_logger(), "%s", packetHandler->getTxRxResult(dxl_comm_result));
-      } else if (dxl_error != 0) {
-        RCLCPP_INFO(this->get_logger(), "%s", packetHandler->getRxPacketError(dxl_error));
-      } else {
-        RCLCPP_INFO(this->get_logger(), "Set [ID: %d] [Goal Position: %d]", msg->id_2, msg->position_2);
-      }
 
       uint32_t goal_position_3 = (unsigned int)msg->position_3;
 
@@ -235,13 +164,6 @@ ReadWriteNode::ReadWriteNode()
         &dxl_error
       );
 
-      if (dxl_comm_result != COMM_SUCCESS) {
-        RCLCPP_INFO(this->get_logger(), "%s", packetHandler->getTxRxResult(dxl_comm_result));
-      } else if (dxl_error != 0) {
-        RCLCPP_INFO(this->get_logger(), "%s", packetHandler->getRxPacketError(dxl_error));
-      } else {
-        RCLCPP_INFO(this->get_logger(), "Set [ID: %d] [Goal Position: %d]", msg->id_3, msg->position_3);
-      }
 
       uint32_t goal_position_4 = (unsigned int)msg->position_4;
 
@@ -254,44 +176,32 @@ ReadWriteNode::ReadWriteNode()
         &dxl_error
       );
 
-      if (dxl_comm_result != COMM_SUCCESS) {
-        RCLCPP_INFO(this->get_logger(), "%s", packetHandler->getTxRxResult(dxl_comm_result));
-      } else if (dxl_error != 0) {
-        RCLCPP_INFO(this->get_logger(), "%s", packetHandler->getRxPacketError(dxl_error));
-      } else {
-        RCLCPP_INFO(this->get_logger(), "Set [ID: %d] [Goal Position: %d]", msg->id_4, msg->position_4);
-      }
-    }
-    );
 
+      uint32_t goal_position_5 = (unsigned int)msg->position_5;
 
-  // create service to get the present position
-  auto get_present_position =
-    [this](
-    const std::shared_ptr<GetPosition::Request> request,
-    std::shared_ptr<GetPosition::Response> response) -> void
-    {
-      // Read Present Position (length : 4 bytes) and Convert uint32 -> int32
-      // When reading 2 byte data from AX / MX(1.0), use read2ByteTxRx() instead.
-      dxl_comm_result = packetHandler->read4ByteTxRx(
+      dxl_comm_result =
+      packetHandler->write4ByteTxRx(
         portHandler,
-        (uint8_t) request->id,
-        ADDR_PRESENT_POSITION,
-        reinterpret_cast<uint32_t *>(&present_position),
+        (uint8_t) msg->id_5,
+        ADDR_GOAL_POSITION,
+        goal_position_5,
         &dxl_error
       );
 
-      RCLCPP_INFO(
-        this->get_logger(),
-        "Get [ID: %d] [Present Position: %d]",
-        request->id,
-        present_position
+
+      uint32_t goal_position_6 = (unsigned int)msg->position_6;
+
+      dxl_comm_result =
+      packetHandler->write4ByteTxRx(
+        portHandler,
+        (uint8_t) msg->id_6,
+        ADDR_GOAL_POSITION,
+        goal_position_6,
+        &dxl_error
       );
+    }
+    );
 
-      response->position = present_position;
-    };
-
-  get_position_server_ = create_service<GetPosition>("get_position", get_present_position);
   
 }
 
@@ -302,59 +212,7 @@ ReadWriteNode::~ReadWriteNode()
 /******************************************************************************/
 /* Function                                                                   */
 /******************************************************************************/
-void ReadWriteNode::publishData()
-{
-    SetPositionFiveMotor message;
-    //int msg.id_1, msg.id_2, msg.id_3, msg.id_4, msg.id_5, i;
-    unsigned char* id[] = { &message.id_1, &message.id_2, &message.id_3 ,&message.id_4, &message.id_5 };
 
-    //int msg.position_1, msg.position_2, msg.position_3, msg.position_4, msg.position_5;
-    int* position[] = { &message.position_1, &message.position_2, &message.position_3, &message.position_4, &message.position_5 };
-
-    uint32_t present; 
-
-    for (int i = 11; i <= 15; i++){
-        *id[i-11] = static_cast<unsigned char>(i);
-        dxl_comm_result = packetHandler->read4ByteTxRx(
-            portHandler,
-            *id[i-11],
-            ADDR_PRESENT_POSITION,
-            &present,
-            &dxl_error
-        );
-        *position[i-11] = static_cast<int>(present);
-
-        RCLCPP_INFO(get_logger(), "Publishing ID: %d Position: %d", *id[i-11], *position[i-11]);
-    }
-    publisher_five_motor_present_position_ ->publish(message);
-}
-
-void ReadWriteNode::publishCurrentData()
-{
-    SetPositionFiveMotor msg;
-    //int msg.id_1, msg.id_2, msg.id_3, msg.id_4, msg.id_5, i;
-    unsigned char* id[] = { &msg.id_1, &msg.id_2, &msg.id_3 ,&msg.id_4, &msg.id_5 };
-
-    //int msg.position_1, msg.position_2, msg.position_3, msg.position_4, msg.position_5;
-    int* position[] = { &msg.position_1, &msg.position_2, &msg.position_3, &msg.position_4, &msg.position_5 };
-
-    int present_current; 
-
-    for (int i = 11; i <= 15; i++){
-        *id[i-11] = static_cast<unsigned char>(i);
-        dxl_comm_result = packetHandler->read4ByteTxRx(
-            portHandler,
-            *id[i-11],
-            ADDR_PRESENT_CURRENT,
-            reinterpret_cast<uint32_t *>(&present_current),
-            &dxl_error
-        );
-        *position[i-11] = present_current;
-
-        RCLCPP_INFO(get_logger(), "Publishing ID: %d Current: %d", *id[i-11], *position[i-11]);
-    }
-    publisher_five_motor_present_current_->publish(msg);
-}
 
 
 void setupDynamixel(uint8_t dxl_id)
@@ -370,46 +228,20 @@ void setupDynamixel(uint8_t dxl_id)
   dxl_comm_result = packetHandler->write1ByteTxRx(
         portHandler,
         dxl_id,
-        ADDR_DRIVE_MODE,
-        TIME_BASED_PROFILE,  
+        ADDR_OPERATING_MODE,
+        CURRENT_BASED_POSITION_CONTROL,  
         &dxl_error
   );
   
   dxl_comm_result = packetHandler->write4ByteTxRx(
         portHandler,
-        DXL11_ID,
-        PROFILE_VELOCITY,
-        arm_profile,
+        dxl_id,
+        ADDR_GOAL_CURRENT,
+        400,
         &dxl_error
   );
-  dxl_comm_result = packetHandler->write4ByteTxRx(
-        portHandler,
-        DXL12_ID,
-        PROFILE_VELOCITY,
-        arm_profile,
-        &dxl_error
-  );
-  dxl_comm_result = packetHandler->write4ByteTxRx(
-        portHandler,
-        DXL13_ID,
-        PROFILE_VELOCITY,
-        arm_profile,
-        &dxl_error
-  );
-  dxl_comm_result = packetHandler->write4ByteTxRx(
-        portHandler,
-        DXL14_ID,
-        PROFILE_VELOCITY,
-        gripper_profile,
-        &dxl_error
-  );
-  dxl_comm_result = packetHandler->write4ByteTxRx(
-        portHandler,
-        DXL15_ID,
-        PROFILE_VELOCITY,
-        gripper_profile,
-        &dxl_error
-  );
+  
+  
   
   if (dxl_comm_result != COMM_SUCCESS) {
     RCLCPP_ERROR(rclcpp::get_logger("read_write_node"), "Failed to enable drive mode.");

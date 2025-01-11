@@ -1,0 +1,5 @@
+int8 seconds
+bool record
+---
+string sentence
+bool listening_success

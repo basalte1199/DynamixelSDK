@@ -52,9 +52,12 @@ private:
   rclcpp::Publisher<SetPositionFiveMotor>::SharedPtr publisher_five_motor_;
   rclcpp::Publisher<SetPositionFourMotor>::SharedPtr publisher_four_motor_;
   rclcpp::Publisher<SetPositionFiveMotor>::SharedPtr publisher_five_motor_present_position_;
+  rclcpp::Publisher<SetPositionSixMotor>::SharedPtr publisher_six_motor_present_current_;
+  rclcpp::Publisher<SetPositionSixMotor>::SharedPtr publisher_six_motor_present_position_;
   rclcpp::Publisher<SetPositionFiveMotor>::SharedPtr publisher_five_motor_present_current_;
   rclcpp::Publisher<SetPositionSixMotor>::SharedPtr publisher_six_motor_;
   rclcpp::Subscription<SetPositionFourMotor>::SharedPtr set_position_four_motor_subscriber_;
+  rclcpp::Subscription<SetPositionSixMotor>::SharedPtr set_position_six_motor_subscriber_;
   rclcpp::Publisher<SetPositionTwoMotor>::SharedPtr publisher_two_motor_;
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::TimerBase::SharedPtr timer_position_;

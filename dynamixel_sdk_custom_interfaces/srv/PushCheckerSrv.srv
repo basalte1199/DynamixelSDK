@@ -1,0 +1,4 @@
+float32 timeout
+float32 weight
+---
+bool success
