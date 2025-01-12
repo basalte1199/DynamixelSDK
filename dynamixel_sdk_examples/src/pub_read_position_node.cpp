@@ -85,7 +85,7 @@
 #define PROTOCOL_VERSION 2.0  // Default Protocol version of DYNAMIXEL X series.
 
 /* Default setting */
-#define BAUDRATE 57600  // Default Baudrate of DYNAMIXEL X series
+#define BAUDRATE 4000000  // Default Baudrate of DYNAMIXEL X series
 #define DEVICE_NAME "/dev/ttyUSB1"  // [Linux]: "/dev/ttyUSB*", [Windows]: "COM*"
 
 dynamixel::PortHandler * portHandler;

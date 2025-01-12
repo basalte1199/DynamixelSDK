@@ -92,7 +92,7 @@
 #define PROTOCOL_VERSION 2.0  // Default Protocol version of DYNAMIXEL X series.
 
 /* Default setting */
-#define BAUDRATE 57600  // Default Baudrate of DYNAMIXEL X series
+#define BAUDRATE 4000000  // Default Baudrate of DYNAMIXEL X series
 #define DEVICE_NAME "/dev/ttyUSB1"  // [Linux]: "/dev/ttyUSB*", [Windows]: "COM*"
 
 dynamixel::PortHandler * portHandler;
@@ -229,15 +229,22 @@ void setupDynamixel(uint8_t dxl_id)
         portHandler,
         dxl_id,
         ADDR_OPERATING_MODE,
+        POSITION_CONTROL,  
+        &dxl_error
+  );
+  dxl_comm_result = packetHandler->write1ByteTxRx(
+        portHandler,
+        16,
+        ADDR_OPERATING_MODE,
         CURRENT_BASED_POSITION_CONTROL,  
         &dxl_error
   );
   
   dxl_comm_result = packetHandler->write4ByteTxRx(
         portHandler,
-        dxl_id,
+        16,
         ADDR_GOAL_CURRENT,
-        400,
+        100,
         &dxl_error
   );
   
