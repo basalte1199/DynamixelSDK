@@ -87,6 +87,13 @@ ament_target_dependencies(pub_current_pos_v1_node
   rclcpp
 )
 
+add_executable(read_write_position_six_node src/read_write_position_six_node.cpp)
+ament_target_dependencies(read_write_position_six_node
+  dynamixel_sdk_custom_interfaces
+  dynamixel_sdk
+  rclcpp
+)
+
 ################################################################################
 # Current-based Position Control Mode ver2
 ################################################################################
@@ -106,14 +113,21 @@ ament_target_dependencies(pub_current_pos_v2_node
 ################################################################################
 # ID11~15 Dynamizel control node
 ################################################################################
-add_executable(read_write_position_arm_node src/read_write_position_arm_node.cpp)
-ament_target_dependencies(read_write_position_arm_node
+
+add_executable(pub_read_position_node src/pub_read_position_node.cpp)
+ament_target_dependencies(pub_read_position_node
   dynamixel_sdk_custom_interfaces
   dynamixel_sdk
   rclcpp
 )
-add_executable(pub_read_position_node src/pub_read_position_node.cpp)
-ament_target_dependencies(pub_read_position_node
+add_executable(read_write_velocity_arm_node src/read_write_velocity_arm_node.cpp)
+ament_target_dependencies(read_write_velocity_arm_node
+  dynamixel_sdk_custom_interfaces
+  dynamixel_sdk
+  rclcpp
+)
+add_executable(read_write_position_arm_node src/read_write_position_arm_node.cpp)
+ament_target_dependencies(read_write_position_arm_node
   dynamixel_sdk_custom_interfaces
   dynamixel_sdk
   rclcpp
@@ -135,6 +149,8 @@ install(TARGETS
   pub_current_pos_v2_node
   read_write_position_arm_node
   pub_read_position_node
+  read_write_velocity_arm_node
+  read_write_position_six_node
   DESTINATION lib/${PROJECT_NAME}
 )
 

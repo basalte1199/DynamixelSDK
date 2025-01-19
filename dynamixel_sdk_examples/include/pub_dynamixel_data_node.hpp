@@ -21,6 +21,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include "dynamixel_sdk_custom_interfaces/msg/set_position.hpp"
 #include "dynamixel_sdk_custom_interfaces/msg/set_position_five_motor.hpp"
+#include "dynamixel_sdk_custom_interfaces/msg/set_position_six_motor.hpp"
 #include "dynamixel_sdk_custom_interfaces/srv/get_position.hpp"
 
 
@@ -29,6 +30,7 @@ class JointPubNode : public rclcpp::Node
 public:
   using SetPosition = dynamixel_sdk_custom_interfaces::msg::SetPosition;
   using SetPositionFiveMotor = dynamixel_sdk_custom_interfaces::msg::SetPositionFiveMotor;
+  using SetPositionSixMotor = dynamixel_sdk_custom_interfaces::msg::SetPositionSixMotor;
 
   JointPubNode();
 
