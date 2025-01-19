@@ -39,6 +39,10 @@ set(msg_point
   "msg/SetPoint.msg"
 )
 
+set(msg_person
+  "msg/PersonInfo.msg"
+)
+
 
 set(srv_files
   "srv/GetPosition.srv"
@@ -57,6 +61,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
   ${srv_push}
   ${srv_listen}
   ${msg_point}
+  ${msg_person}
   ${msg_files_two_motor}
   ${msg_files_four_motor}
   ${msg_files_five_motor}
