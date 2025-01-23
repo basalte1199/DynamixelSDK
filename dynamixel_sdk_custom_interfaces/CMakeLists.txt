@@ -54,10 +54,14 @@ set(srv_push
 set(srv_listen
   "srv/ListenSpeech.srv"
 )
+set(srv_lift
+  "srv/LiftControl.srv"
+)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   ${msg_files}
   ${srv_files}
+  ${srv_lift}
   ${srv_push}
   ${srv_listen}
   ${msg_point}
