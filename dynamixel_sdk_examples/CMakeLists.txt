@@ -18,6 +18,7 @@ find_package(dynamixel_sdk REQUIRED)
 find_package(dynamixel_sdk_custom_interfaces REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(geometry_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
 
 include_directories(include)
 
@@ -30,6 +31,7 @@ ament_target_dependencies(read_write_current_node
   dynamixel_sdk_custom_interfaces
   dynamixel_sdk
   rclcpp
+  sensor_msgs
 )
 add_executable(pub_current_node src/pub_current_node.cpp)
 ament_target_dependencies(pub_current_node
@@ -47,12 +49,14 @@ ament_target_dependencies(read_write_velocity_node
   dynamixel_sdk
   rclcpp
   geometry_msgs
+  sensor_msgs
 )
 add_executable(pub_velocity_node src/pub_velocity_node.cpp)
 ament_target_dependencies(pub_velocity_node
   dynamixel_sdk_custom_interfaces
   dynamixel_sdk
   rclcpp
+  sensor_msgs
 )
 
 ################################################################################
@@ -63,12 +67,14 @@ ament_target_dependencies(read_write_position_node
   dynamixel_sdk_custom_interfaces
   dynamixel_sdk
   rclcpp
+  sensor_msgs
 )
 add_executable(pub_position_node src/pub_position_node.cpp)
 ament_target_dependencies(pub_position_node
   dynamixel_sdk_custom_interfaces
   dynamixel_sdk
   rclcpp
+  sensor_msgs
 )
 
 ################################################################################
@@ -79,12 +85,14 @@ ament_target_dependencies(read_write_current_pos_v1_node
   dynamixel_sdk_custom_interfaces
   dynamixel_sdk
   rclcpp
+  sensor_msgs
 )
 add_executable(pub_current_pos_v1_node src/pub_current_pos_v1_node.cpp)
 ament_target_dependencies(pub_current_pos_v1_node
   dynamixel_sdk_custom_interfaces
   dynamixel_sdk
   rclcpp
+  sensor_msgs
 )
 
 add_executable(read_write_position_six_node src/read_write_position_six_node.cpp)
@@ -92,6 +100,7 @@ ament_target_dependencies(read_write_position_six_node
   dynamixel_sdk_custom_interfaces
   dynamixel_sdk
   rclcpp
+  sensor_msgs
 )
 
 ################################################################################
@@ -102,12 +111,14 @@ ament_target_dependencies(read_write_current_pos_v2_node
   dynamixel_sdk_custom_interfaces
   dynamixel_sdk
   rclcpp
+  sensor_msgs
 )
 add_executable(pub_current_pos_v2_node src/pub_current_pos_v2_node.cpp)
 ament_target_dependencies(pub_current_pos_v2_node
   dynamixel_sdk_custom_interfaces
   dynamixel_sdk
   rclcpp
+  sensor_msgs
 )
 
 ################################################################################
@@ -119,18 +130,21 @@ ament_target_dependencies(pub_read_position_node
   dynamixel_sdk_custom_interfaces
   dynamixel_sdk
   rclcpp
+  sensor_msgs
 )
 add_executable(read_write_velocity_arm_node src/read_write_velocity_arm_node.cpp)
 ament_target_dependencies(read_write_velocity_arm_node
   dynamixel_sdk_custom_interfaces
   dynamixel_sdk
   rclcpp
+  sensor_msgs
 )
 add_executable(read_write_position_arm_node src/read_write_position_arm_node.cpp)
 ament_target_dependencies(read_write_position_arm_node
   dynamixel_sdk_custom_interfaces
   dynamixel_sdk
   rclcpp
+  sensor_msgs
 )
 
 ################################################################################

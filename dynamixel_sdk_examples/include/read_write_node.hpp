@@ -28,6 +28,9 @@
 #include "dynamixel_sdk_custom_interfaces/msg/set_position_four_motor.hpp"
 #include "dynamixel_sdk_custom_interfaces/msg/set_position_two_motor.hpp"
 #include "dynamixel_sdk_custom_interfaces/srv/get_position.hpp"
+#include "sensor_msgs/msg/joint_state.hpp"
+
+
 
 
 class ReadWriteNode : public rclcpp::Node
@@ -39,6 +42,7 @@ public:
   using SetPositionFiveMotor = dynamixel_sdk_custom_interfaces::msg::SetPositionFiveMotor;
   using SetPositionFourMotor = dynamixel_sdk_custom_interfaces::msg::SetPositionFourMotor;
   using SetPositionTwoMotor = dynamixel_sdk_custom_interfaces::msg::SetPositionTwoMotor;
+  using JointState = sensor_msgs::msg::JointState;
 
   ReadWriteNode();
   virtual ~ReadWriteNode();
@@ -59,6 +63,10 @@ private:
   rclcpp::Subscription<SetPositionFourMotor>::SharedPtr set_position_four_motor_subscriber_;
   rclcpp::Subscription<SetPositionSixMotor>::SharedPtr set_position_six_motor_subscriber_;
   rclcpp::Publisher<SetPositionTwoMotor>::SharedPtr publisher_two_motor_;
+  rclcpp::Publisher<JointState>::SharedPtr publisher_joint_state_;
+
+  void publish_joint_states();
+  rclcpp::TimerBase::SharedPtr  joint_state_timer_;
   rclcpp::TimerBase::SharedPtr timer_;
   rclcpp::TimerBase::SharedPtr timer_position_;
   int present_position;

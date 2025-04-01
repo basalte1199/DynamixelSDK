@@ -44,6 +44,8 @@
 #include "read_write_node.hpp"
 
 
+
+
 /******************************************************************************/
 /* define                                                                     */
 /******************************************************************************/
@@ -91,7 +93,7 @@
 
 /* Default setting */
 #define BAUDRATE 4000000  // Default Baudrate of DYNAMIXEL X series
-#define DEVICE_NAME "/dev/ttyUSB1"  // [Linux]: "/dev/ttyUSB*", [Windows]: "COM*"
+#define DEVICE_NAME "/dev/ttyUSB_dxl"  // [Linux]: "/dev/ttyUSB*", [Windows]: "COM*"
 
 dynamixel::PortHandler * portHandler;
 dynamixel::PacketHandler * packetHandler;
@@ -128,6 +130,12 @@ ReadWriteNode::ReadWriteNode()
     timer_ = create_wall_timer(
         std::chrono::milliseconds(10),
         std::bind(&ReadWriteNode::publishCurrentData, this)
+    );
+
+    publisher_joint_state_ = create_publisher<JointState>("/joint_states",10);
+    joint_state_timer_ = create_wall_timer(
+        std::chrono::milliseconds(10),
+        std::bind(&ReadWriteNode::publish_joint_states, this)
     );
 
 
@@ -324,7 +332,7 @@ void ReadWriteNode::publishData()
         );
         *position[i-11] = static_cast<int>(present);
 
-        RCLCPP_INFO(get_logger(), "Publishing ID: %d Position: %d", *id[i-11], *position[i-11]);
+
     }
     publisher_five_motor_present_position_ ->publish(message);
 }
@@ -351,11 +359,38 @@ void ReadWriteNode::publishCurrentData()
         );
         *position[i-11] = present_current;
 
-        RCLCPP_INFO(get_logger(), "Publishing ID: %d Current: %d", *id[i-11], *position[i-11]);
+
     }
     publisher_five_motor_present_current_->publish(msg);
 }
 
+void ReadWriteNode::publish_joint_states()
+{
+    JointState msg;
+    msg.header.stamp = this->get_clock()->now();  // 現在のタイムスタンプを取得
+    msg.header.frame_id = "";
+
+    msg.name = {"pan_joint", "tilt_joint"};
+    uint32_t joint_1,joint_2;
+    dxl_comm_result = packetHandler->read4ByteTxRx(
+      portHandler,
+      1,
+      ADDR_PRESENT_POSITION,
+      &joint_1,
+      &dxl_error
+    );
+    dxl_comm_result = packetHandler->read4ByteTxRx(
+      portHandler,
+      2,
+      ADDR_PRESENT_POSITION,
+      &joint_2,
+      &dxl_error
+    );
+    msg.position = {(joint_1-2048.0)/4096.0*M_PI, ((joint_2/4096.0)-0.5)*M_PI};
+    msg.velocity = {};
+    msg.effort = {10,10};
+    publisher_joint_state_->publish(msg);
+}
 
 void setupDynamixel(uint8_t dxl_id)
 {

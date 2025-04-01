@@ -31,6 +31,7 @@ public:
   using SetPosition = dynamixel_sdk_custom_interfaces::msg::SetPosition;
   using SetPositionFiveMotor = dynamixel_sdk_custom_interfaces::msg::SetPositionFiveMotor;
   using SetPositionSixMotor = dynamixel_sdk_custom_interfaces::msg::SetPositionSixMotor;
+  
 
   JointPubNode();
 
