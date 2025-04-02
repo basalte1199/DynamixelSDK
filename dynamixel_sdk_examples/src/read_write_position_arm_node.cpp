@@ -92,7 +92,7 @@
 #define PROTOCOL_VERSION 2.0  // Default Protocol version of DYNAMIXEL X series.
 
 /* Default setting */
-#define BAUDRATE 4000000  // Default Baudrate of DYNAMIXEL X series
+#define BAUDRATE 115200  // Default Baudrate of DYNAMIXEL X series
 #define DEVICE_NAME "/dev/ttyUSB_dxl"  // [Linux]: "/dev/ttyUSB*", [Windows]: "COM*"
 
 dynamixel::PortHandler * portHandler;
@@ -386,7 +386,7 @@ void ReadWriteNode::publish_joint_states()
       &joint_2,
       &dxl_error
     );
-    msg.position = {(joint_1-2048.0)/4096.0*M_PI, ((joint_2/4096.0)-0.5)*M_PI};
+    msg.position = {((joint_1-1024.0)/4096.0)*M_PI, ((2048.0-joint_2)/4096.0)*M_PI};
     msg.velocity = {};
     msg.effort = {10,10};
     publisher_joint_state_->publish(msg);
